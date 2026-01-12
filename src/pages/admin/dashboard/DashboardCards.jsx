@@ -7,19 +7,27 @@ import DashboardIcon5 from '../../../components/svgIcons/DashboardIcon5';
 import DashboardIcon6 from '../../../components/svgIcons/DashboardIcon6';
 import { getRazaReport } from '../../../services/arazService';
 
-const DashboardCards = () => {
-  const [reportData, setReportData] = useState(null);
+const DashboardCards = ({ filters }) => {
+  const [reportData, setReportData] = useState({});
+
   const loadReport = useCallback(async () => {
     try {
-      const result = await getRazaReport();
-      setReportData(result.data || []);
+      const result = await getRazaReport({
+        fromDate: filters?.fromDate,
+        toDate: filters?.toDate,
+      });
+      setReportData(result.data || {});
+      console.log(result);
     } catch (err) {
       console.error('Failed to load data', err);
     }
-  }, []);
+  }, [
+    filters?.fromDate,
+    filters?.toDate,
+  ]);
 
   useEffect(() => {
-    void loadReport();
+    loadReport();
   }, [loadReport]);
 
   return (

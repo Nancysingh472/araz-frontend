@@ -11,6 +11,10 @@ import RazaJawabForm from './RazaJawabrForm';
 import { toast } from 'react-toastify';
 import { addRazaJawab } from '../../../services/razaJawabService';
 import DownloadIcon from '../../../components/svgIcons/DownloadIcon';
+import UploadIcon from '../../../components/svgIcons/UploadIcon';
+import CircleTickIcon from '../../../components/svgIcons/CircleTickIcon';
+import EyeIcon from '../../../components/svgIcons/EyeIcon';
+
 import {
   getDocumentByCategories,
   getDocumentPreview,
@@ -23,6 +27,7 @@ const AdminSideRequestTable = ({
   jawabServiceData,
   setReqApproveList,
   jawabAnswerData,
+  filters
 }) => {
   const [reqList, setReqList] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
@@ -34,13 +39,37 @@ const AdminSideRequestTable = ({
   const [formData, setFormData] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedReviewReq, setSelectedReviewReq] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const { page, limit, handlePageChange, handleLimitChange } = usePagination();
   const navigate = useNavigate();
+  const selectableRows = reqList.filter(
+  (item) => !item.jawab_additional
+);
+const handleSelectAll = () => {
+  if (selectAll) {
+    // Unselect all
+    setSelectedRows([]);
+    setSelectedReviewReq([]);
+  } else {
+    const pendingIds = selectableRows
+      .filter((item) => item.status === 'pending')
+      .map((item) => item.id);
+
+    const otherIds = selectableRows
+      .filter((item) => item.status !== 'pending')
+      .map((item) => item.id);
+
+    setSelectedReviewReq(pendingIds);
+    setSelectedRows(otherIds);
+  }
+
+  setSelectAll(!selectAll);
+};
+
 
   useEffect(() => {
     if (selectedRows.length > 0) {
-      // Filter reqList to include only objects with IDs in selectedRows
       const selectedObjects = reqList.filter((item) =>
         selectedRows.includes(item.id)
       );
@@ -50,7 +79,7 @@ const AdminSideRequestTable = ({
 
   useEffect(() => {
     if (selectedReviewReq.length > 0) {
-      // Filter reqList to include only objects with IDs in selectedRows
+      
       const selectedObjects = reqList.filter((item) =>
         selectedReviewReq.includes(item.id)
       );
@@ -63,36 +92,48 @@ const AdminSideRequestTable = ({
       setSelectedReviewReq(
         (prev) =>
           prev.includes(item.id)
-            ? prev.filter((rowId) => rowId !== item.id) // Deselect
-            : [...prev, item.id] // Select
+            ? prev.filter((rowId) => rowId !== item.id)
+            : [...prev, item.id]
       );
       return;
     }
     setSelectedRows(
       (prevSelectedRows) =>
         prevSelectedRows.includes(item.id)
-          ? prevSelectedRows.filter((rowId) => rowId !== item.id) // Deselect
-          : [...prevSelectedRows, item.id] // Select
+          ? prevSelectedRows.filter((rowId) => rowId !== item.id)
+          : [...prevSelectedRows, item.id]
     );
   };
 
   const loadRequest = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await fetchRequests(page, limit, search, status);
-      setReqList(result.data?.data || []);
-      if (result.data && result.data.count) {
-        const totalPages = Math.ceil(result.data.count / limit);
-        setTotalPages(totalPages);
-      } else {
-        setTotalPages(0);
-      }
-    } catch (err) {
-      console.error('Failed to load data', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit, search, status]);
+  console.log("Search:", search);
+  setLoading(true);
+  try {
+    // const result = await fetchRequests(page, limit, search || '', status || '');
+    const result = await fetchRequests(
+      page,
+      limit,
+      search || '',
+      status || '',
+      filters // 👈 ADD THIS
+    );
+    const dataList = result?.data?.data || [];
+    setReqList(dataList);
+
+    const totalCount = result?.data?.count || 0;
+    setTotalPages(Math.ceil(totalCount / limit));
+  } catch (err) {
+    console.error('Failed to load data', err);
+    setReqList([]);
+    setTotalPages(0);
+  } finally {
+    setLoading(false);
+  }
+}, [page, limit, search, status,filters?.fromDate,
+  filters?.toDate,
+  filters?.jamiatId,
+  filters?.jamaatId]);
+
 
   useEffect(() => {
     void loadRequest();
@@ -223,6 +264,13 @@ const AdminSideRequestTable = ({
     }
   };
 
+  useEffect(() => {
+  setSelectAll(false);
+  setSelectedRows([]);
+  setSelectedReviewReq([]);
+}, [page, search, status]);
+
+
   return (
     <div>
       <RazaJawabForm
@@ -296,10 +344,19 @@ const AdminSideRequestTable = ({
                 <tr>
                   <th>
                     <div className="custom-check">
-                      <input type="checkbox" />
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectableRows.length > 0 &&
+                          selectableRows.length ===
+                            selectedRows.length + selectedReviewReq.length
+                        }
+                        onChange={handleSelectAll}
+                      />
                       <label></label>
                     </div>
                   </th>
+
                   <th>ID</th>
                   <th>Name</th>
                   <th>Added on</th>
@@ -307,8 +364,8 @@ const AdminSideRequestTable = ({
                   <th>Jamiat</th>
                   <th>Group Id</th>
                   <th>Status</th>
-                  <th></th>
-                  <th></th>
+                  <th>Action</th>
+                  <th>Download</th>
                   {/*<th></th>*/}
                 </tr>
               </thead>
@@ -323,9 +380,13 @@ const AdminSideRequestTable = ({
                             <div className="custom-check">
                               <input
                                 type="checkbox"
-                                checked={selectedRows.includes(item.id) || selectedReviewReq.includes(item.id)} // Check if the row is selected
-                                onChange={() => handleRowSelect(item)} // Handle row selection
+                                checked={
+                                  selectedRows.includes(item.id) ||
+                                  selectedReviewReq.includes(item.id)
+                                }
+                                onChange={() => handleRowSelect(item)}
                               />
+
                               <label></label>
                             </div>
                           ) : (
@@ -362,18 +423,18 @@ const AdminSideRequestTable = ({
 
                             {(item?.status === 'pending' || item?.status === 'generated') && (
                               <button
-                                className="btn btn-primary text-nowrap"
+                                className="btn btn-primary p-2 circle-btn"
                                 onClick={() => {
                                   navigate(`/admin/request-review/${item.id}`);
                                 }}
                               >
-                                Review Request
+                                <EyeIcon/>
                               </button>
                             )}
 
                             {item?.status === 'completed' && (
                               <button
-                                className="btn btn-primary text-nowrap "
+                                className="btn btn-primary p-2 circle-btn"
                                 data-bs-toggle="offcanvas"
                                 data-bs-target="#add_raza_jawab"
                                 aria-controls="offcanvasRight"
@@ -381,8 +442,8 @@ const AdminSideRequestTable = ({
                                 disabled={item.jawab_additional}
                               >
                                 {item.jawab_additional
-                                  ? 'Jawab uploaded'
-                                  : 'Upload Jawab'}
+                                  ? <CircleTickIcon/>
+                                  : <UploadIcon/>}
                               </button>
                             )}
 
@@ -447,6 +508,7 @@ const AdminSideRequestTable = ({
                                 ) : (
                                   <DownloadIcon />
                                 )}
+                                
                               </button>
                             )}
                           </div>

@@ -6,22 +6,15 @@ import CloseButton from '../../components/svgIcons/CloseButton'; // Optional, fo
 const CategoryForm = ({
   initialData,
   handleSubmit,
-  jamaatList,
-  jamiatList,
-  setSelectedJamiat,
 }) => {
   const formik = useFormik({
     initialValues: {
       name: initialData?.name || '',
-      enabled: initialData?.enabled || false,
-      jamaat: initialData?.jamaat?.id || '',
-      jamiat: initialData?.jamiat?.id || '',
+      enabled: initialData?.enabled || false
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
       name: Yup.string().required('Category name is required'),
-      jamaat: Yup.string().required('Please select a Jamaat'),
-      jamiat: Yup.string().required('Please select a jamiat'),
     }),
     onSubmit: (values, { resetForm }) => {
       const params = initialData ? { ...values, id: initialData.id } : values;
@@ -29,18 +22,18 @@ const CategoryForm = ({
       resetForm();
       var myOffcanvas = document.getElementById('Add_Category');
       var bsOffcanvas = window.bootstrap.Offcanvas.getInstance(myOffcanvas);
-      setSelectedJamiat(null);
+      // setSelectedJamiat(null);
       bsOffcanvas.hide();
     },
   });
 
   // Handle Jamiat change event
-  const handleJamiatChange = (e) => {
-    const selectedValue = e.target.value;
-    setSelectedJamiat(selectedValue);
-    formik.setFieldValue('jamiat', selectedValue);
-    formik.setFieldValue('jamaat', '');
-  };
+  // const handleJamiatChange = (e) => {
+  //   const selectedValue = e.target.value;
+  //   setSelectedJamiat(selectedValue);
+  //   formik.setFieldValue('jamiat', selectedValue);
+  //   formik.setFieldValue('jamaat', '');
+  // };
 
   return (
     <div
@@ -71,7 +64,6 @@ const CategoryForm = ({
             aria-label="Close"
             onClick={() => {
               formik.resetForm();
-              setSelectedJamiat(null);
             }}
           >
             <CloseButton />
@@ -95,7 +87,7 @@ const CategoryForm = ({
           </div>
 
           {/* Dropdown for jamiat selection */}
-          <div className="canvas-group mb-4">
+          {/* <div className="canvas-group mb-4">
             <label>Select Jamiat</label>
             <select
               className="form-control"
@@ -113,10 +105,10 @@ const CategoryForm = ({
             {formik.errors.jamiat && (
               <div className="text-danger">{formik.errors.jamiat}</div>
             )}
-          </div>
+          </div> */}
 
           {/* Dropdown for Jamaat selection */}
-          <div className="canvas-group mb-4">
+          {/* <div className="canvas-group mb-4">
             <label>Select Jamaat</label>
             <select
               className="form-control"
@@ -134,7 +126,7 @@ const CategoryForm = ({
             {formik.errors.jamaat && (
               <div className="text-danger">{formik.errors.jamaat}</div>
             )}
-          </div>
+          </div> */}
 
           {/* Checkbox for 'Status' */}
           <div className="canvas-group mb-4">

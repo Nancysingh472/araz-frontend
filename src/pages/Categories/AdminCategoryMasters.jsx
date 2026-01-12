@@ -59,34 +59,58 @@ const AdminCategoryMasters = () => {
     void loadJamaat();
   }, [loadJamaat]);
 
-  const handleStatusChange = (event) => {
-    setStatus(event.target.value);
-    // setPage(0); // Reset page to 0 when status changes
-  };
+  
+  const handleStatusChange = (e) => {
+  setStatus(e.target.value);
+  handlePageChange(0);
+};
 
-  const loadCategories = useCallback(async () => {
-    setLoading(true);
-    try {
-      let statusFilter = null;
-      if (status === 'Active') {
-        statusFilter = true;
-      } else if (status === 'Inactive') {
-        statusFilter = false;
-      }
-      const result = await fetchCategories(page, limit, search, statusFilter);
-      setCategories(result.data?.data || []);
-      if (result.data && result.data.count) {
-        const totalPages = Math.ceil(result.data.count / limit);
-        setTotalPages(totalPages);
-      } else {
-        setTotalPages(0);
-      }
-    } catch (err) {
-      console.error('Failed to load data', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit, search, status]);
+
+  // const loadCategories = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     let statusFilter = null;
+  //     if (status === 'Active') {
+  //       statusFilter = true;
+  //     } else if (status === 'Inactive') {
+  //       statusFilter = false;
+  //     }
+  //     const result = await fetchCategories(page, limit, search, statusFilter);
+  //     setCategories(result.data?.data || []);
+  //     if (result.data && result.data.count) {
+  //       const totalPages = Math.ceil(result.data.count / limit);
+  //       setTotalPages(totalPages);
+  //     } else {
+  //       setTotalPages(0);
+  //     }
+  //   } catch (err) {
+  //     console.error('Failed to load data', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [page, limit, search, status]);
+
+ const loadCategories = useCallback(async () => {
+  setLoading(true);
+  try {
+    let statusFilter = null;
+
+    if (status === 'true') statusFilter = 1;
+    if (status === 'false') statusFilter = 0;
+
+    const result = await fetchCategories(page, limit, search, statusFilter);
+
+    setCategories(result.data?.data || []);
+    setTotalPages(
+      result.data?.count ? Math.ceil(result.data.count / limit) : 0
+    );
+  } catch (err) {
+    console.error('Failed to load data', err);
+  } finally {
+    setLoading(false);
+  }
+}, [page, limit, search, status]);
+
 
   useEffect(() => {
     void loadCategories();
@@ -147,10 +171,11 @@ const AdminCategoryMasters = () => {
                       <div className="filter-select">
                         <label>Show :</label>
                         <select value={status} onChange={handleStatusChange}>
-                          <option value="All">All</option>
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
+                          <option value="">All</option>
+                          <option value="true">Active</option>
+                          <option value="false">Inactive</option>
                         </select>
+
                       </div>
                       <div className="adduser-btn-div">
                         <button
@@ -174,8 +199,8 @@ const AdminCategoryMasters = () => {
                       <tr>
                         <th>Category ID</th>
                         <th>Category name</th>
-                        <th>Jamiat</th>
-                        <th>Jamaat</th>
+                        {/* <th>Jamiat</th>
+                        <th>Jamaat</th> */}
                         <th>Added on</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -188,8 +213,8 @@ const AdminCategoryMasters = () => {
                             <tr key={category.id}>
                               <td>{category.id}</td>
                               <td>{category.name}</td>
-                              <td>{category?.jamiat?.name || ''}</td>
-                              <td>{category?.jamaat?.name || ''}</td>
+                              {/* <td>{category?.jamiat?.name || ''}</td>
+                              <td>{category?.jamaat?.name || ''}</td> */}
                               <td>
                                 {format(
                                   new Date(category.createdAt),

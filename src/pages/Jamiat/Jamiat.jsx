@@ -7,12 +7,15 @@ import DeleteIcon from '../../components/svgIcons/DeleteIcon';
 import { format } from 'date-fns';
 import JamiatForm from './JamiatForm';
 import {
+  createBulkJamiat,
   createJamiat,
   deleteJamiat,
   editJamiat,
   fetchJamiat,
 } from '../../services/jamiatService';
 import LoaderDots from '../../components/common/LoaderDots';
+import BulkForm from './BulkForm';
+import axios from 'axios';
 
 const Jamiat = () => {
   const [JamiatList, setJamiatList] = useState([]);
@@ -20,6 +23,8 @@ const Jamiat = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [formBulkData, setFormBulkData] = useState(null);
+
   const [status, setStatus] = useState('All');
 
   const { page, limit, handlePageChange, handleLimitChange } = usePagination();
@@ -71,6 +76,21 @@ const Jamiat = () => {
       await loadJamiat();
     }
   };
+ const handleBulkSubmit = async (formData) => {
+  try {
+    const res = await createBulkJamiat(formData);
+    await loadJamiat();
+    console.log('Bulk upload success', res);
+    alert('Bulk upload successful!'); // ✅ optional
+  } catch (err) {
+    console.error(err);
+    alert('Bulk upload failed!'); // ✅ optional
+  }
+};
+
+
+
+
 
   const handleDeleteJamiat = async (id) => {
     try {
@@ -92,6 +112,8 @@ const Jamiat = () => {
             </div>
 
             <JamiatForm handleSubmit={handleSubmit} initialData={formData} />
+            {/* <BulkForm handleSubmit={handleBulkSubmit}/> */}
+             <BulkForm handleBulkSubmit={(data) => handleBulkSubmit(data)} />
 
             <div className="request-table">
               <div className="rt-head">
@@ -120,6 +142,17 @@ const Jamiat = () => {
                           onClick={() => setFormData(null)}
                         >
                           + Add new
+                        </button>
+                        </div>
+                        <div className="adduser-btn-div">
+                         <button
+                          className="btn"
+                          data-bs-toggle="offcanvas"
+                          data-bs-target="#bulkadd_jamiat"
+                          aria-controls="offcanvasRight"
+                          onClick={() => setFormBulkData(null)}
+                        >
+                          Bulk Upload
                         </button>
                       </div>
                     </div>

@@ -10,38 +10,89 @@ export const createArazRequest = async (data) => {
   }
 };
 
+// export const fetchRequests = async (
+//   page = null,
+//   limit = null,
+//   search = '',
+//   status = null,
+// ) => {
+//   try {
+//     const params = {};
+
+//     // Add pagination parameters only if page and limit are provided
+//     if (page !== null && limit !== null) {
+//       params.page = page;
+//       params.limit = limit;
+//     }
+
+//     // Add search parameter if present
+//     if (search) {
+//       params.search = search;
+//     }
+
+//     if (status !== null) {
+//       params.status = status; // true for Active, false for Inactive
+//     }
+
+//     const response = await client.get('/raza-request', { params });
+
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error fetching raza-request:', error);
+//     throw error;
+//   }
+// };
+
 export const fetchRequests = async (
   page = null,
   limit = null,
   search = '',
   status = null,
+  filters = {}
 ) => {
   try {
     const params = {};
 
-    // Add pagination parameters only if page and limit are provided
+    // pagination
     if (page !== null && limit !== null) {
       params.page = page;
       params.limit = limit;
     }
 
-    // Add search parameter if present
+    // search
     if (search) {
       params.search = search;
     }
 
-    if (status !== null) {
-      params.status = status; // true for Active, false for Inactive
+    // status
+    if (status) {
+      params.status = status;
+    }
+
+    // ✅ DATE FILTER
+    if (filters.fromDate && filters.toDate) {
+      params.fromDate = filters.fromDate;
+      params.toDate = filters.toDate;
+    }
+
+    // ✅ JAMIAT / JAMAAT FILTER
+    if (filters.jamiatId) {
+      params.jamiatId = filters.jamiatId;
+    }
+
+    if (filters.jamaatId) {
+      params.jamaatId = filters.jamaatId;
     }
 
     const response = await client.get('/raza-request', { params });
-
     return response.data;
+
   } catch (error) {
     console.error('Error fetching raza-request:', error);
     throw error;
   }
 };
+
 
 export const getRequestById = async (id) => {
   try {
@@ -171,15 +222,34 @@ export const bulkPreviewDocApi = async (ids, others = {}) => {
   }
 };
 
-export const getRazaReport = async () => {
+// export const getRazaReport = async () => {
+//   try {
+//     const response = await client.get(`/raza-request/report/stats`);
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error :: getRazaReport ::', error);
+//     throw error;
+//   }
+// };
+
+export const getRazaReport = async (filters) => {
   try {
-    const response = await client.get(`/raza-request/report/stats`);
+    const response = await client.get(
+      `/raza-request/report/stats`,
+      {
+        params: {
+          fromDate: filters?.fromDate,
+          toDate: filters?.toDate
+        }
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error :: getRazaReport ::', error);
     throw error;
   }
 };
+
 
 export const getRazaDocumentById = async (id) => {
   try {

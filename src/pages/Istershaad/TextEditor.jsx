@@ -18,6 +18,7 @@ const TextEditor = ({ setContent, questionList, content }) => {
     }
     event.target.value = null;
   };
+  console.log("questionList:", questionList);
 
   const handleClear = () => {
     setContent('');

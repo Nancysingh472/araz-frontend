@@ -174,7 +174,7 @@ const AdminEditDocument = ({ onchangeType, documentId }) => {
       if (questionList.length > 0) {
         questionList.forEach((item) => {
           const placeholder = `{{${item.question}}}`;
-          const idReplacement = `{{${item.id}}}`;
+          const idReplacement = `{{${item.question}}}`;
           contentToSend = contentToSend.replace(
             new RegExp(placeholder, 'g'),
             idReplacement

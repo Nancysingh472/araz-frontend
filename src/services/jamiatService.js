@@ -1,6 +1,10 @@
 import client from './client';
 
 // Fetch all categories
+export const fetchJamiatList = async() => {
+  const response = await client.get('/jamiat');
+  return response.data;
+}
 export const fetchJamiat = async (
   page = null,
   limit = null,
@@ -44,6 +48,23 @@ export const createJamiat = async (data) => {
     throw error;
   }
 };
+export const createBulkJamiat = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await client.post(
+    '/jamiat/bulkupload',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data;
+};
+
 
 // Edit an existing jamiat
 export const editJamiat = async (id, data) => {
